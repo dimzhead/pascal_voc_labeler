@@ -1,1 +1,0 @@
-python tf_od_predict.py  --model_name=inference_graph  --path_to_label=training/label_map.pbtxt --test_image_path=images
