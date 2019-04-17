@@ -6,7 +6,7 @@ python tf_od_predict.py --model_name=building_od_ssd \
                          --path_to_label=data/building_od.pbtxt \
                          --test_image_path=test_images
 """
-
+#python tf_od_predict.py --model_name=inference_graph --path_to_label=training\labelmap.pbtxt --test_image_path=images
 import os
 from os import makedirs, path as op
 import sys
@@ -24,8 +24,8 @@ from PIL import ImageDraw, Image
 
 sys.path.append("..")
 
-from utils import label_map_util
-from utils import visualization_utils as vis_util
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
 
 from pascal_voc_writer import Writer
 
@@ -84,14 +84,24 @@ def tf_od_pred():
                 '''
 
 				
-				
+				#This is the only code i added
 				#get image height and width for each image
                 (im_height, im_width) = image.size
+				#Sort List by x values
+				#1.zip scores and boxes together
+                zip_boxes = np.array(list(zip(boxes[0], scores[0], classes[0])))
+				#sort the ziped (boxes and scores)by x values
+                soreted_zip_boxes = sorted(zip_boxes, key=lambda x: x[0][1])
+				#unzip the sorted boxes into scores 
+                unzip_boxes = list(zip(*soreted_zip_boxes))
+                boxes = [(unzip_boxes[0])]
+                scores = [(unzip_boxes[1])]
+                classes = [(unzip_boxes[2])]
 				#creat list of scores above 0.5 for each box 
-                lst = np.where(np.squeeze(scores)>0.5)
+                lst = np.where(np.squeeze(scores) > 0.5)
 				# Writer(path, width, height)
                 writer = Writer(image_path + "/*.jpg", im_width, im_width)
-                for i in range(len(lst[0])):
+                for i in lst[0]:
 						# ::addObject(name, xmin, ymin, xmax, ymax)
                         writer.addObject(category_index [(np.squeeze(classes)[i])]['name'],
                         int(np.squeeze(boxes)[i][3]*im_height), int(np.squeeze(boxes)[i][2]*im_width),
